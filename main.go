@@ -1,41 +1,24 @@
 package main
 
 import (
-	"encoding/csv"
-	"flag"
 	"fmt"
-	"os"
+	"net/http"
 )
 
-var filename = flag.String("file", "problems.csv", "path to csv file containing quiz problems")
-
 func main() {
-	file , err := os.Open("problems.csv")
-	if err != nil {
-		fmt.Println("error opening file:", err)
-		return
+	pathToUrls := map[string]string{
+		"/google": "https://www.google.com",
+		"/github": "https://www.github.com",
 	}
-	defer file.Close()
 
-	reader := csv.NewReader(file)
-	records,err := reader.ReadAll()
-	if err != nil {
-		fmt.Println("error reading csv:",err)
-		return
-	}
-	correct := 0
-	for _, record := range records {
-		question := record[0]
-		answer := record[1]
-
-		fmt.Print(question, "=")
-
-		var userAnswer string
-		fmt.Scanln(&userAnswer)
-
-		if userAnswer == answer {
-			correct++
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		url, ok := pathToUrls[r.URL.Path]
+		if ok {
+			http.Redirect(w, r, url, http.StatusFound)
+		} else {
+			fmt.Fprintln(w, "Path not found")
 		}
-		}
-		fmt.Println("you got" , correct, "out of", len(records))
-	}
+	})
+
+	http.ListenAndServe(":8080", nil)
+}
