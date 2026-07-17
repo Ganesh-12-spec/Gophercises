@@ -1,7 +1,9 @@
 package deck
 
-import ( "sort",
-   "math/rand"
+import (
+	"math/rand"
+	"sort"
+	"time"
 )
 
 //go:generate stringer -type=Suit
@@ -87,11 +89,50 @@ func absRank(c Card) int {
 
 func Shuffle(cards []Card) []Card{
 	ret := make([]Card, len(cards))
-	r := rand.New(rand.NewSource(time.Now.Unix()))
+	r := rand.New(rand.NewSource(time.Now().Unix()))
 	perm := r.Perm(len(cards))
 	for i, j := range perm{
 		ret[i] = cards[j]
 	}
 	return ret
+
 }
+func Jokers(n int) func([]Card) []Card {
+		return func(cards []Card) []Card {
+        for i:= 0; i<n; i++ {
+					cards = append(cards,  Card{
+						Rank: Rank(0),
+						Suit: Joker,
+
+					})
+				
+				}
+				return cards
+				 
+
+		}
+}
+func Filter(f func (card Card) bool) func([]Card) []Card{
+    return func(cards []Card) []Card{
+			var ret []Card
+			for _, card := range cards {
+				if f(card){
+					ret = append(ret, card)
+				}
+			}
+			return ret
+		}
+		
+
+	}
+func MultipleDecks(n int) func ([]Card) []Card{
+	return func(cards []Card) []Card{
+		var ret []Card
+    for i :=0; i<n; i++ {
+			ret = append(ret, cards...)
+		}
+		return ret
+	}
+}
+
 
