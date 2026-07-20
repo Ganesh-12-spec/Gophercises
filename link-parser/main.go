@@ -20,8 +20,26 @@ func main (){
  doc ,err := html.Parse(r)
 
 	if err != nil {
-		fmt.Println("NOt abel to Parser the html link")
-	}else{
-		fmt.Println(doc.Type)
+		fmt.Println("not able to parse the html")
+		return
+	}
+
+	var links []Link
+	dfs(doc, &links)
+	fmt.Println(links)
+
+}
+func dfs(h *html.Node, l *[]Link){
+	if h.Type ==html.ElementNode &&h.Data == "a" {
+		var href string
+		for _,attribute := range h.Attr{
+			if attribute.Key == "href"{
+				 href  = attribute.Val
+			}
+		}
+		*l = append(*l,  Link{Href: href})
+	}
+	for c := h.FirstChild; c != nil; c = c.NextSibling {
+		dfs(c,l)
 	}
 }
