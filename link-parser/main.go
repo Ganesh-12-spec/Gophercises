@@ -14,10 +14,9 @@ type Link struct{
 
 
 
-func main (){
- r := strings.NewReader(`<html><body><a
-	href="/about">About</a></body></html>`)
- doc ,err := html.Parse(r)
+func main() {
+	r := strings.NewReader(`<html><body><a href="/about">About</a></body></html>`)
+	doc, err := html.Parse(r)
 
 	if err != nil {
 		fmt.Println("not able to parse the html")
@@ -29,17 +28,32 @@ func main (){
 	fmt.Println(links)
 
 }
-func dfs(h *html.Node, l *[]Link){
-	if h.Type ==html.ElementNode &&h.Data == "a" {
+
+// dfs traverses the HTML tree depth-first to find <a> elements and extract links.
+func dfs(h *html.Node, l *[]Link) {
+	if h.Type == html.ElementNode && h.Data == "a" {
 		var href string
-		for _,attribute := range h.Attr{
-			if attribute.Key == "href"{
-				 href  = attribute.Val
+		for _, attribute := range h.Attr {
+			if attribute.Key == "href" {
+				href = attribute.Val
 			}
 		}
-		*l = append(*l,  Link{Href: href})
+		text := getText(h)
+		*l = append(*l, Link{Href: href, Text: text})
 	}
 	for c := h.FirstChild; c != nil; c = c.NextSibling {
-		dfs(c,l)
+		dfs(c, l)
 	}
+}
+
+// getText recursively collects and returns the trimmed text content of a node.
+func getText(n *html.Node) string {
+	if n.Type == html.TextNode {
+		return strings.TrimSpace(n.Data)
+	}
+	var result strings.Builder
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		result.WriteString(getText(c))
+	}
+	return strings.TrimSpace(result.String())
 }
