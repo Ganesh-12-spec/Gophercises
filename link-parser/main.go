@@ -51,9 +51,9 @@ func getText(n *html.Node) string {
 	if n.Type == html.TextNode {
 		return strings.TrimSpace(n.Data)
 	}
-	var result strings.Builder
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		result.WriteString(getText(c))
+	var result string
+	for c:= n.FirstChild; c!= nil; c= c.NextSibling{
+		result += getText(c)
 	}
-	return strings.TrimSpace(result.String())
+	return strings.TrimSpace(result)
 }
