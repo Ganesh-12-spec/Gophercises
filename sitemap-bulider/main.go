@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/xml"
 	"fmt"
 	"net/http"
 	"net/url" // NEW
+	"os"
 	"strings" // NEW
 
 	"golang.org/x/net/html"
@@ -11,6 +13,16 @@ import (
 
 type Link struct {
 	Href string
+}
+
+type URL struct {
+	Loc string `xml:"loc"`
+}
+
+type URLSet struct {
+	XMLName xml.Name `xml:"urlset"`
+	Xmlns   string   `xml:"xmlns,attr"`
+	URLs    []URL    `xml:"url"`
 }
 
 func main() {
@@ -35,8 +47,8 @@ func main() {
 	fmt.Println(links)
 
 	visited := make(map[string]bool)
-  crawl("https://example.com", visited)
-  crawl("https://example.com", visited)
+	crawl("https://example.com", visited)
+	generateSitemap(visited)
 }
 func dfs(h *html.Node, l* []Link){
 	if h.Type == html.ElementNode && h.Data == "a" {
@@ -106,5 +118,29 @@ func crawl(urlString string, visited map[string]bool) {
 		}
 
 		crawl(absoluteURL.String(), visited)
+	}
+}
+func generateSitemap(visited map[string]bool){
+	var urlSet URLSet
+	urlSet.Xmlns = "http://www.sitemaps.org/schemas/sitemap/0.9"
+
+	for page := range visited {
+		urlSet.URLs = append(urlSet.URLs, URL{
+			Loc: page,
+		})
+	}
+
+	data, err := xml.MarshalIndent(urlSet, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshaling XML:", err)
+		return
+	}
+
+	data = append([]byte(xml.Header), data...)
+
+	err = os.WriteFile("sitemap.xml", data, 0644)
+	if err != nil {
+		fmt.Println("Error writing file:", err)
+		return
 	}
 }
